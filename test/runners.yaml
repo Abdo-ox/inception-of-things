@@ -1,0 +1,66 @@
+# gitlabUrl: http://gitlab-webservice-default.gitlab.svc.cluster.local:8080
+# runnerRegistrationToken: "GR13489418xY9Z7jAxeyVJD2ABSQm"
+
+# concurrent: 10
+# checkInterval: 30
+
+# rbac:
+#   create: true
+#   rules:
+#     - apiGroups: [""]
+#       resources: ["pods", "pods/exec", "pods/log", "secrets", "configmaps"]
+#       verbs: ["get", "list", "watch", "create", "patch", "delete", "update"]
+#     - apiGroups: [""]
+#       resources: ["pods/attach"]
+#       verbs: ["list", "get", "create", "delete", "update"]
+
+# serviceAccount:
+#   create: true
+#   name: gitlab-runner
+
+# runners:
+#   runUntagged: true
+#   config: |
+#     [[runners]]
+#       # Clone URL - use internal service
+#       clone_url = "http://gitlab-webservice-default.gitlab.svc:8181"
+      
+#       [runners.kubernetes]
+#         namespace = "gitlab"
+#         image = "alpine:latest"
+        
+#         # Add helper image (contains git)
+#         helper_image = "gitlab/gitlab-runner-helper:x86_64-latest"
+#         privileged = true  # Required for Docker-in-Docker
+        
+#         # Docker-in-Docker service
+#         [[runners.kubernetes.services]]
+#           name = "docker:27-dind"
+#           alias = "docker"
+        
+#         # Volume for Docker certs
+#         [[runners.kubernetes.volumes.empty_dir]]
+#           name = "docker-certs"
+#           mount_path = "/certs/client"
+#           medium = "Memory"
+
+gitlabUrl: http://gitlab-webservice-default.gitlab.svc.cluster.local:8080
+runnerRegistrationToken: "GR13489418xY9Z7jAxeyVJD2ABSQm"
+
+rbac:
+  create: true
+  clusterWideAccess: true
+
+runners:
+  config: |
+    [[runners]]
+      clone_url = "http://gitlab-webservice-default.gitlab.svc:8181"
+      [runners.kubernetes]
+        namespace = "gitlab"
+        image = "alpine:latest"
+        privileged = true
+        
+        [[runners.kubernetes.volumes.empty_dir]]
+          name = "docker-certs"
+          mount_path = "/certs/client"
+          medium = "Memory"
