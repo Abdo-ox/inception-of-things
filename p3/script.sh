@@ -45,7 +45,7 @@ message "$BLUE" "patch the argocd pod(containers) to accept insecure connection 
 kubectl patch svc argocd-server -p '{"spec": {"type": "NodePort", "ports":[{"port":80,"targetPort":8080,"nodePort":30000}]}}' -n argocd
 
 
-kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > secret 
+kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > $SCRIPT_DIR/secrets 
 
 message "$GREEN" "link argocd to the public repo."
 kubectl apply -f "${SCRIPT_DIR}/argocd.yaml"
