@@ -3,7 +3,7 @@ BLUE='\e[0;34m'
 YELLOW='\e[1;33m'
 ORANGE='\e[38;5;214m'
 NC='\e[0m'
-CLUSTER_NAME="mycluster"
+CLUSTER_NAME="MyCluster"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 message(){
@@ -48,4 +48,4 @@ kubectl patch svc argocd-server -p '{"spec": {"type": "NodePort", "ports":[{"por
 kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > $SCRIPT_DIR/secrets 
 
 message "$GREEN" "link argocd to the public repo."
-kubectl apply -f "${SCRIPT_DIR}/argocd.yaml"
+kubectl apply -f "${SCRIPT_DIR}/../confs/argocd.yaml"
