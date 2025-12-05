@@ -45,4 +45,8 @@ require docker '
     newgrp docker
 '
 
-require k3d 'curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash'
+# require vagrant 'wget https://releases.hashicorp.com/vagrant/2.4.0/vagrant_2.4.0-1_amd64.deb
+#     sudo dpkg -i vagrant_2.4.0-1_amd64.deb
+#     sudo apt -f install
+# '
+require helm 'curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash'
