@@ -14,7 +14,7 @@ set -e
 
 message "$ORANGE" "creating the k3d cluster ander ${CLUSTER_NAME}..."
 if ! k3d cluster list | grep -q $CLUSTER_NAME; then 
-  k3d cluster create $CLUSTER_NAME -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8000:30000@loadbalancer" -p "8888:30001@loadbalancer"
+  k3d cluster create $CLUSTER_NAME -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8000:30000@loadbalancer" -p "8888:30001@loadbalancer" -p "8001:30002@loadbalancer"
   message "$GREEN" "k3d cluster created successfully."
 else
   message $BLUE "cluter with the name ${CLUSTER_NAME} already created."
@@ -63,9 +63,27 @@ helm upgrade --install gitlab gitlab/gitlab \
   --timeout 600s \
   --wait
 message "$ORANGE" "waiting gitlab pod becomes ready..."
-kubectl wait --for=condition=ready pod -n gitlab --all --timeout=300s
+kubectl wait --for=condition=Ready pod --field-selector=status.phase=Running -n gitlab --timeout=60s
 message "$GREEN" "gitlab ready."
-
+kubectl patch svc gitlab-webserver-default -p '{"spec": {"type": "NodePort", "ports":[{"port":80,"targetPort":8080,"nodePort":30002}]}}' -n gitlab
 message "$GREEN" "link argocd to the public repo."
-kubectl apply -f "${SCRIPT_DIR}/../confs/argocd.yaml"
+POD=$(kubectl get pods -n $NAMESPACE -l app=toolbox -o jsonpath='{.items[0].metadata.name}')
+TOKEN=$(kubectl exec -n $NAMESPACE -i $POD -- \
+  gitlab-rails runner "
+    token = PersonalAccessToken.create!(
+      user: User.find_by_username('root'),
+      name: 'automation-token-$(date +%s)',
+      scopes: [:api, :write_repository],
+      expires_at: 1.year.from_now
+    )
+    puts token.token
+  ")
+
+response=$(curl -s --request POST "https://localhost:8080/api/v4/projects" \
+     --header "PRIVATE-TOKEN: $TOKEN" \
+     --data "name=ajari")
+
+HTTP_URL=$(echo "$RESPONSE" | grep -oP '(?<="http_url_to_repo":")[^"]+')
+echo "Repo created at: $HTTP_URL"
+# kubectl apply -f "${SCRIPT_DIR}/../confs/argocd.yaml"
 GITLAB_PASS=(kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d && echo)
