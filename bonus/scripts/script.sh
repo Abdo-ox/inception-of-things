@@ -65,25 +65,9 @@ helm upgrade --install gitlab gitlab/gitlab \
 message "$ORANGE" "waiting gitlab pod becomes ready..."
 kubectl wait --for=condition=Ready pod --field-selector=status.phase=Running -n gitlab --timeout=60s
 message "$GREEN" "gitlab ready."
-kubectl patch svc gitlab-webserver-default -p '{"spec": {"type": "NodePort", "ports":[{"port":80,"targetPort":8080,"nodePort":30002}]}}' -n gitlab
-message "$GREEN" "link argocd to the public repo."
-POD=$(kubectl get pods -n $NAMESPACE -l app=toolbox -o jsonpath='{.items[0].metadata.name}')
-TOKEN=$(kubectl exec -n $NAMESPACE -i $POD -- \
-  gitlab-rails runner "
-    token = PersonalAccessToken.create!(
-      user: User.find_by_username('root'),
-      name: 'automation-token-$(date +%s)',
-      scopes: [:api, :write_repository],
-      expires_at: 1.year.from_now
-    )
-    puts token.token
-  ")
+message "$GREEN" "store the secrit for the root at secrets file."
+kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d && echo >> $SCRIPT_DIR/secrets
+kubectl patch svc gitlab-webservice-default -p '{"spec": {"type": "NodePort", "ports":[{"name": "webserver", "port":80,"targetPort":8080,"nodePort":30002}]}}' -n gitlab
 
-response=$(curl -s --request POST "https://localhost:8080/api/v4/projects" \
-     --header "PRIVATE-TOKEN: $TOKEN" \
-     --data "name=ajari")
-
-HTTP_URL=$(echo "$RESPONSE" | grep -oP '(?<="http_url_to_repo":")[^"]+')
-echo "Repo created at: $HTTP_URL"
 # kubectl apply -f "${SCRIPT_DIR}/../confs/argocd.yaml"
-GITLAB_PASS=(kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d && echo)
+# GITLAB_PASS=(kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d && echo)
