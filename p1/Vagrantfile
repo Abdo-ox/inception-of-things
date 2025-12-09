@@ -1,0 +1,59 @@
+# | Concept             | Meaning                                         |
+# | ------------------- | ----------------------------------------------- |
+# | **Box**             | A reusable VM image (e.g., Ubuntu)              |
+# | **Provisioning**    | Installing software automatically               |
+# | **Provider**        | The virtualization system (VirtualBox, VMware…) |
+# | **Private Network** | VM gets a static IP                             |
+# | **Forwarded ports** | Mapping ports from host → VM                    |
+# | **Synced folder**   | Share files between host ↔ VM                   |
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/focal64"
+
+  # Disable synced folder (not needed, avoids permission problems)
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # ----------- SERVER ----------------
+  config.vm.define "kelmoutoS" do |server|
+    # server is the configuration object for THIS machine only.
+    server.vm.hostname = "kelmoutoS"
+    server.vm.network "private_network", ip: "192.168.56.110"
+    # Creates a network interface visible only inside your computer.
+
+    # Assigns VM a static IP.
+
+    #  Required so the worker can reach the server.
+    server.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+
+    # Install K3s server + kubectl
+    server.vm.provision "shell", inline: <<-SHELL
+      curl -sfL https://get.k3s.io | sh -
+      sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/config
+      sudo chown vagrant:vagrant /home/vagrant/config
+    SHELL
+  end
+
+
+  # ----------- WORKER ----------------
+  config.vm.define "kelmoutoSW" do |worker|
+    worker.vm.hostname = "kelmoutoSW"
+    worker.vm.network "private_network", ip: "192.168.56.111"
+
+    worker.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+
+    # Install K3s agent
+    worker.vm.provision "shell", inline: <<-SHELL
+      # Wait for server to be ready
+      sleep 15
+      SERVER_TOKEN=$(curl -s http://192.168.56.110:80/v1-k3s/server-token)
+      curl -sfL https://get.k3s.io | K3S_URL="https://192.168.56.110:6443" K3S_TOKEN="$SERVER_TOKEN" sh -
+    SHELL
+  end
+
+end
