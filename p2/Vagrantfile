@@ -26,42 +26,30 @@ Vagrant.configure("2") do |config|
     end
 
     # Install K3s server + kubectl
+    server.vm.provision "file", source: "./deployment.yaml", destination: "/tmp/deployment.yaml"
+    server.vm.provision "file", source: "./service.yaml", destination: "/tmp/service.yaml"
+    server.vm.provision "file", source: "./ingress.yaml", destination: "/tmp/ingress.yaml"
+
     server.vm.provision "shell", inline: <<-SHELL
+      set -e
       curl -sfL https://get.k3s.io | sh -
-      while true; do
-        if [ -f "/var/lib/rancher/k3s/server/node-token" ];then
-          sudo cat /var/lib/rancher/k3s/server/node-token > /vagrant/token
-          break
-        else
-          sleep 1
-          echo "waiting the token to be created"
-        fi
-      
+      until sudo kubectl get node 2>/dev/null; do
+        echo "waiting for k3s to start..."
+        sleep 3
       done
+      sudo kubectl apply -f /tmp/deployment.yaml
+      sudo kubectl apply -f /tmp/service.yaml
+      sudo kubectl apply -f /tmp/ingress.yaml
+      echo "waiting for the app to start..."
+      sudo kubectl wait --for=condition=ready pod --all --timeout=300s
+      if [ $? -eq "0" ];then
+        echo "the app started successfully."
+      else
+        echo "something went wrong with the app"
+      fi
       echo "alias k='kubectl'" >> /home/vagrant/.bashrc
       chown vagrant:vagrant /home/vagrant/.bashrc
       sudo chmod 777 /etc/rancher/k3s/k3s.yaml
     SHELL
   end
-
-
-  # ----------- WORKER ----------------
-  config.vm.define "kelmoutoSW" do |worker|
-    worker.vm.hostname = "kelmoutoSW"
-    worker.vm.network "private_network", ip: "192.168.56.111"
-
-    worker.vm.provider "virtualbox" do |vb|
-      vb.memory = 2048
-      vb.cpus = 2
-    end
-
-    # Install K3s agent
-    worker.vm.provision "shell", inline: <<-SHELL
-      # Wait for server to be ready
-      # sleep 15
-      SERVER_TOKEN=$(cat /vagrant/token)
-      curl -sfL https://get.k3s.io | K3S_URL="https://192.168.56.110:6443" K3S_TOKEN="$SERVER_TOKEN" sh -
-    SHELL
-  end
-
 end
