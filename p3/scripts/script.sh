@@ -41,7 +41,7 @@ message "$ORANGE" "waiting the argocd pod get ready..."
 kubectl wait --for=condition=ready pod -n argocd --all --timeout=300s
 message "$ORANGE" "Argocd pod are ready..."
 
-message "$BLUE" "patch the argocd pod(containers) to accept insecure connection via HTTP."
+message "$BLUE" "patch the argocd to nodePort to be accessible from the outside and give the port mapped."
 kubectl patch svc argocd-server -p '{"spec": {"type": "NodePort", "ports":[{"port":80,"targetPort":8080,"nodePort":30000}]}}' -n argocd
 
 

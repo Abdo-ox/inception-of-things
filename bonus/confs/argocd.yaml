@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Abdo-ox/ajari.git
+    repoURL: http://gitlab-webservice-default.gitlab.svc:80/root/my.git
     targetRevision: main
     path: .
   destination:

@@ -41,8 +41,8 @@ message "$ORANGE" "waiting the argocd pod get ready..."
 kubectl wait --for=condition=ready pod -n argocd --all --timeout=300s
 message "$ORANGE" "Argocd pod are ready..."
 
-message "$BLUE" "patch the argocd pod(containers) to accept insecure connection via HTTP."
 kubectl patch svc argocd-server -p '{"spec": {"type": "NodePort", "ports":[{"port":80,"targetPort":8080,"nodePort":30000}]}}' -n argocd
+message "$BLUE" "patch the argocd to nodePort to be accessible from the outside and give the port mapped."
 
 
 kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > $SCRIPT_DIR/secrets 
@@ -66,8 +66,6 @@ message "$ORANGE" "waiting gitlab pod becomes ready..."
 kubectl wait --for=condition=Ready pod --field-selector=status.phase=Running -n gitlab --timeout=60s
 message "$GREEN" "gitlab ready."
 message "$GREEN" "store the secrit for the root at secrets file."
-kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d && echo >> $SCRIPT_DIR/secrets
-kubectl patch svc gitlab-webservice-default -p '{"spec": {"type": "NodePort", "ports":[{"name": "webserver", "port":80,"targetPort":8080,"nodePort":30002}]}}' -n gitlab
-
-# kubectl apply -f "${SCRIPT_DIR}/../confs/argocd.yaml"
-# GITLAB_PASS=(kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d && echo)
+echo "" >> $SCRIPT_DIR/secrets
+kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d >> $SCRIPT_DIR/secrets
+kubectl patch svc gitlab-webservice-default -p '{"spec": {"type": "NodePort", "ports":[{"name": "webserver", "port":80,"targetPort":8181,"nodePort":30002}]}}' -n gitlab
