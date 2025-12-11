@@ -62,9 +62,6 @@ helm upgrade --install gitlab gitlab/gitlab \
   --set global.ingress.configureCertmanager=false \
   --timeout 600s \
   --wait
-message "$ORANGE" "waiting gitlab pod becomes ready..."
-kubectl wait --for=condition=Ready pod --field-selector=status.phase=Running -n gitlab --timeout=60s
-message "$GREEN" "gitlab ready."
 message "$GREEN" "store the secrit for the root at secrets file."
 echo "" >> $SCRIPT_DIR/secrets
 kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d >> $SCRIPT_DIR/secrets

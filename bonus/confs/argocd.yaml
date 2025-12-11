@@ -4,7 +4,6 @@ metadata:
   name: redacted
   namespace: argocd
 spec:
-  project: default
   source:
     repoURL: http://gitlab-webservice-default.gitlab.svc:80/root/my.git
     targetRevision: main
