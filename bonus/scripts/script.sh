@@ -62,7 +62,7 @@ helm upgrade --install gitlab gitlab/gitlab \
   --set global.ingress.configureCertmanager=false \
   --timeout 600s \
   --wait
-message "$GREEN" "store the secrit for the root at secrets file."
+message "$GREEN" "store the password for the root user in the secrets file."
 echo "" >> $SCRIPT_DIR/secrets
 kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -o jsonpath="{.data.password}" | base64 -d >> $SCRIPT_DIR/secrets
 kubectl patch svc gitlab-webservice-default -p '{"spec": {"type": "NodePort", "ports":[{"name": "webserver", "port":80,"targetPort":8181,"nodePort":30002}]}}' -n gitlab

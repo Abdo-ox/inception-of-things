@@ -4,6 +4,7 @@ metadata:
   name: redacted
   namespace: argocd
 spec:
+  project: default
   source:
     repoURL: https://github.com/Abdo-ox/ajari.git
     targetRevision: main
