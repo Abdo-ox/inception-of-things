@@ -30,26 +30,6 @@ Vagrant.configure("2") do |config|
     server.vm.provision "file", source: "./service.yaml", destination: "/tmp/service.yaml"
     server.vm.provision "file", source: "./ingress.yaml", destination: "/tmp/ingress.yaml"
 
-    server.vm.provision "shell", inline: <<-SHELL
-      set -e
-      curl -sfL https://get.k3s.io | sh -
-      until sudo kubectl get node 2>/dev/null; do
-        echo "waiting for k3s to start..."
-        sleep 3
-      done
-      sudo kubectl apply -f /tmp/deployment.yaml
-      sudo kubectl apply -f /tmp/service.yaml
-      sudo kubectl apply -f /tmp/ingress.yaml
-      echo "waiting for the app to start..."
-      sudo kubectl wait --for=condition=ready pod --all --timeout=300s
-      if [ $? -eq "0" ];then
-        echo "the app started successfully."
-      else
-        echo "something went wrong with the app"
-      fi
-      echo "alias k='kubectl'" >> /home/vagrant/.bashrc
-      chown vagrant:vagrant /home/vagrant/.bashrc
-      sudo chmod 777 /etc/rancher/k3s/k3s.yaml
-    SHELL
+    server.vm.provision "shell", path: "./scripts/script.sh" 
   end
 end
