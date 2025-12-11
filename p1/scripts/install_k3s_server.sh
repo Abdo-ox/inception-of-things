@@ -1,8 +1,8 @@
 echo "===> start the k3s server installation."
 curl -sfL https://get.k3s.io | sh -
 echo "===> K3s server installed."
-echo "===> Waiting the token to be created..."
 
+echo "===> Waiting the token to be created..."
 while true; do
   if [ -f "/var/lib/rancher/k3s/server/node-token" ];then
     echo "Token created successfully."
