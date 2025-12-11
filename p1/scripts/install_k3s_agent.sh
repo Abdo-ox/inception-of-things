@@ -1,11 +1,9 @@
+
 #!/bin/bash
+echo "===> get the token from the shared directory."
+SERVER_TOKEN=$(cat /vagrant/token)
 
-SERVER_IP="192.168.56.110"
+echo "===> install the k3s agent & link with the k3s server"
+curl -sfL https://get.k3s.io | K3S_URL="https://192.168.56.110:6443" K3S_TOKEN="$SERVER_TOKEN" sh -
 
-# Get the token from the K3s server
-TOKEN=$(curl -s http://$SERVER_IP:8080/v1-k3s/server-token)
-
-# Install K3s agent and join server
-curl -sfL https://get.k3s.io | K3S_URL="https://$SERVER_IP:6443" K3S_TOKEN="$TOKEN" sh -
-
-echo "K3s agent installed and joined the cluster successfully."
+echo "##Agent is ready##"
