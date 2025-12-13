@@ -1,25 +1,13 @@
-# | Concept             | Meaning                                         |
-# | ------------------- | ----------------------------------------------- |
-# | **Box**             | A reusable VM image (e.g., Ubuntu)              |
-# | **Provisioning**    | Installing software automatically               |
-# | **Provider**        | The virtualization system (VirtualBox, VMware…) |
-# | **Private Network** | VM gets a static IP                             |
-# | **Forwarded ports** | Mapping ports from host → VM                    |
-# | **Synced folder**   | Share files between host ↔ VM                   |
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/focal64"
 
   # ----------- SERVER ----------------
   config.vm.define "kelmoutoS" do |server|
-    # server is the configuration object for THIS machine only.
+  
     server.vm.hostname = "kelmoutoS"
     server.vm.network "private_network", ip: "192.168.56.110"
-    # Creates a network interface visible only inside your computer.
 
-    # Assigns VM a static IP.
-
-    #  Required so the worker can reach the server.
     server.vm.provider "virtualbox" do |vb|
       vb.memory = 2048
       vb.cpus = 2

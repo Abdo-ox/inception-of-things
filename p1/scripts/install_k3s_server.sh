@@ -15,7 +15,6 @@ while true; do
 done
 echo "===> Created alias for kubectl"
 echo "alias k='kubectl'" >> /home/vagrant/.bashrc
-chown vagrant:vagrant /home/vagrant/.bashrc
 echo "===> Alter the k3s.yml file permission for using kubectl command without sudo"
 sudo chmod 777 /etc/rancher/k3s/k3s.yaml
 echo "##Server is ready##"
