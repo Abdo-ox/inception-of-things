@@ -1,36 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-2
+  name: dep-2
 spec:
   replicas: 3
-  selector:
-    matchLabels:
-      app: app-2
   template:
     metadata:
       labels:
         app: app-2
     spec:
       containers:
-        - name: nginx
+        - name: container_name
           image: paulbouwer/hello-kubernetes:1.10
-          imagePullPolicy: IfNotPresent
           env: 
           - name: MESSAGE
             value: "Hello from app two"
           ports:
             - containerPort: 8080
+  selector:
+    matchLabels:
+      app: app-2
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-1
+  name: dep-1
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: app-1
   template:
     metadata:
       labels:
@@ -39,22 +35,21 @@ spec:
       containers:
         - name: nginx
           image: paulbouwer/hello-kubernetes:1.10
-          imagePullPolicy: IfNotPresent
           env: 
           - name: MESSAGE
             value: "Hello from app one"
           ports:
             - containerPort: 8080
+  selector:
+    matchLabels:
+      app: app-1
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-3
+  name: dep-3
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: app-3
   template:
     metadata:
       labels:
@@ -63,9 +58,11 @@ spec:
       containers:
         - name: nginx
           image: paulbouwer/hello-kubernetes:1.10
-          imagePullPolicy: IfNotPresent
           env: 
           - name: MESSAGE
             value: "Hello from app three"
           ports:
             - containerPort: 8080
+  selector:
+    matchLabels:
+      app: app-3
